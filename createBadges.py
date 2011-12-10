@@ -38,10 +38,11 @@ FOLD_COLOR = "#000000"
 
 
 class BadgeImage(object):
-    def __init__(self, filename):
+    def __init__(self, filename, fontname):
         self.img = Image.open(filename)
         self.draw = ImageDraw.Draw(self.img)
         self.width = int(self.img.size[0]*0.9)
+        self.fontname = fontname
 
     def drawAlignedText(self, pos, text, (font, color), xtransform, ytransform):
         width,height = font.getsize(text)
@@ -54,15 +55,15 @@ class BadgeImage(object):
 
     def getFitSize(self, startsize, text):
         size = startsize
-        font = ImageFont.truetype(fontname, size*300/72)
+        font = ImageFont.truetype(self.fontname, size*300/72)
         textwidth, textheight = font.getsize(text)
         while textwidth > self.width:
             size -= 1
-            font = ImageFont.truetype(fontname, size*300/72)
+            font = ImageFont.truetype(self.fontname, size*300/72)
             textwidth, textheight = font.getsize(text)
         return size
 
-    def drawPerson(self, name):
+    def drawPerson(self, name, color):
         linepos = (self.img.size[0]/2, 240)
         line1pos = (self.img.size[0]/2, 150)
         line2pos = (self.img.size[0]/2, 320)
@@ -71,31 +72,31 @@ class BadgeImage(object):
         else:
             firstname, rest = (name, "")
         if rest != "":
-            personFont = ImageFont.truetype(fontname, self.getFitSize(45, firstname)*300/72)
-            self.drawCenteredText(line1pos, firstname, (personFont, NAME_COLOR))
-            personFont = ImageFont.truetype(fontname, self.getFitSize(45, rest)*300/72)
-            self.drawCenteredText(line2pos, rest, (personFont, NAME_COLOR))
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, firstname)*300/72)
+            self.drawCenteredText(line1pos, firstname, (personFont, color))
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, rest)*300/72)
+            self.drawCenteredText(line2pos, rest, (personFont, color))
         else:
-            personFont = ImageFont.truetype(fontname, self.getFitSize(45, name)*300/72)
-            self.drawCenteredText(linepos, name, (personFont, NAME_COLOR))
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, name)*300/72)
+            self.drawCenteredText(linepos, name, (personFont, color))
 
-    def drawCompany(self, name):
+    def drawCompany(self, name, color):
         pos = (self.img.size[0]/2, 500)
-        font = ImageFont.truetype(fontname, self.getFitSize(26, name)*300/72)
-        self.drawCenteredText(pos, name, (font, COMPANY_COLOR))
+        font = ImageFont.truetype(self.fontname, self.getFitSize(26, name)*300/72)
+        self.drawCenteredText(pos, name, (font, color))
 
-    def drawId(self, id):
+    def drawId(self, id, color):
         pos = (50, 50)
-        font = ImageFont.truetype(fontname, 8*300/72)
-        self.drawCenteredText(pos, id, (font, ID_COLOR))
+        font = ImageFont.truetype(self.fontname, 8*300/72)
+        self.drawCenteredText(pos, id, (font, color))
 
 
-    def save(self, filename, doubleSided=False):
+    def save(self, filename, color, doubleSided=False):
         if not doubleSided:
             self.img.save(filename)
             return
 
-        newimg = Image.new("RGB", (self.img.size[0]*2+20, self.img.size[1]), FOLD_COLOR)
+        newimg = Image.new("RGB", (self.img.size[0]*2+20, self.img.size[1]), color)
         newimg.paste(self.img, (0,0))
         newimg.paste(self.img, (self.img.size[0]+20,0))
         newimg.save(filename)
@@ -132,29 +133,55 @@ class DataFileReader(object):
 
 import sys
 
-#The first argument is assumed to be font. from the second onwards starts the filenames
 
-if len(sys.argv) > 1:
-    fontname = sys.argv[1]
-    if len(sys.argv) > 2:
-      filenames = sys.argv[2:]
-    else : filenames = ["sample"]
-else:
-    fontname = "Trebucbd.ttf"
-    filenames = ["sample"]
+class BadgeMaker(object):
 
-count = 0
-for filename in filenames:
-    reader = DataFileReader(filename + ".csv")
-    if not os.path.exists(filename):
-        os.makedirs(filename)
-    for id, name, company in reader.getData():
-        print id, name, company
-        badge = BadgeImage("badge_template.png")
-        badge.drawPerson(name)
-        badge.drawCompany(company)
-        badge.drawId(id)
-        badge.save(os.path.join(filename, filename + "_badge_" + str(id) + ".png"))
-        count += 1
-print "\n%d badges created" % (count)
+    def __init__(self, fontname = "Trebucbd.ttf", template = "badge_template_black.png", namecol = "white", compcol = "red", idcol = "white",foldcol = "black", filenames = ["sample"]):
+        self.filenames = filenames
+        self.fontname = fontname
+        self.template = template
+        self.namecol = namecol
+        self.compcol = compcol
+        self.idcol = idcol
+        self.foldcol = foldcol
+        
+                   
+    # I know single line funcs suck but "I shouldn't ditch Java for atleast an year" :P
 
+    def setFont(self, name):
+        self.fontname = name
+
+    def setBgColor(self, col):
+        if col == "white":
+            self.template = "badge_template_white.png"
+        elif col == "black":
+            self.template = "badge_template_black.png"
+           
+    def setNameColor(self, col):
+        self.namecol = col
+
+    def setCompanyColor(self, col):
+        self.compcol = col
+
+    def setIdColor(self, col):
+        self.idcol = col
+
+    def setFoldColor(self, col):   
+        self.foldcol = col
+
+    def generateBadges(self):
+        self.count = 0
+        for filename in self.filenames:
+            self.reader = DataFileReader(filename + ".csv")
+            if not os.path.exists(filename):
+                os.makedirs(filename)
+            for id, name, company in self.reader.getData():
+                print id, name, company
+                self.badge = BadgeImage(self.template, self.fontname)
+                self.badge.drawPerson(name, self.namecol)
+                self.badge.drawCompany(company, self.compcol)
+                self.badge.drawId(id, self.idcol)
+                self.badge.save(os.path.join(filename, "badge_" + str(id) + ".png"), self.foldcol)
+                self.count += 1
+        print "\n%d badges created" % (self.count)
+        
