@@ -63,7 +63,7 @@ class BadgeImage(object):
             textwidth, textheight = font.getsize(text)
         return size
 
-    def drawPerson(self, name, color):
+    def drawPerson(self, name, color, startsize):
         linepos = (self.img.size[0]/2, 240)
         line1pos = (self.img.size[0]/2, 150)
         line2pos = (self.img.size[0]/2, 320)
@@ -72,17 +72,17 @@ class BadgeImage(object):
         else:
             firstname, rest = (name, "")
         if rest != "":
-            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, firstname)*300/72)
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(startsize, firstname)*300/72)
             self.drawCenteredText(line1pos, firstname, (personFont, color))
-            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, rest)*300/72)
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(startsize, rest)*300/72)
             self.drawCenteredText(line2pos, rest, (personFont, color))
         else:
-            personFont = ImageFont.truetype(self.fontname, self.getFitSize(45, name)*300/72)
+            personFont = ImageFont.truetype(self.fontname, self.getFitSize(startsize, name)*300/72)
             self.drawCenteredText(linepos, name, (personFont, color))
 
-    def drawCompany(self, name, color):
+    def drawCompany(self, name, color, startsize):
         pos = (self.img.size[0]/2, 500)
-        font = ImageFont.truetype(self.fontname, self.getFitSize(26, name)*300/72)
+        font = ImageFont.truetype(self.fontname, self.getFitSize(startsize, name)*300/72)
         self.drawCenteredText(pos, name, (font, color))
 
     def drawId(self, id, color):
@@ -136,7 +136,7 @@ import sys
 
 class BadgeMaker(object):
 
-    def __init__(self, fontname = "Trebucbd.ttf", template = "badge_template_black.png", namecol = "white", compcol = "red", idcol = "white",foldcol = "black", filenames = ["sample"]):
+    def __init__(self, fontname = "Trebucbd.ttf", template = "badge_template_black.png", namecol = "white", compcol = "red", idcol = "white", foldcol = "black", filenames = ["sample"], nfs = 45, cfs = 26):
         self.filenames = filenames
         self.fontname = fontname
         self.template = template
@@ -144,7 +144,8 @@ class BadgeMaker(object):
         self.compcol = compcol
         self.idcol = idcol
         self.foldcol = foldcol
-        
+        self.namefontsize = nfs
+        self.compfontsize = cfs
                    
     # I know single line funcs suck but "I shouldn't ditch Java for atleast an year" :P
 
@@ -178,8 +179,8 @@ class BadgeMaker(object):
             for id, name, company in self.reader.getData():
                 print id, name, company
                 self.badge = BadgeImage(self.template, self.fontname)
-                self.badge.drawPerson(name, self.namecol)
-                self.badge.drawCompany(company, self.compcol)
+                self.badge.drawPerson(name, self.namecol, self.namefontsize)
+                self.badge.drawCompany(company, self.compcol, self.compfontsize)
                 self.badge.drawId(id, self.idcol)
                 self.badge.save(os.path.join(filename, "badge_" + str(id) + ".png"), self.foldcol)
                 self.count += 1
