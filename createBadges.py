@@ -54,11 +54,11 @@ class BadgeImage(object):
 
     def getFitSize(self, startsize, text):
         size = startsize
-        font = ImageFont.truetype("Trebucbd.ttf", size*300/72)
+        font = ImageFont.truetype(fontname, size*300/72)
         textwidth, textheight = font.getsize(text)
         while textwidth > self.width:
             size -= 1
-            font = ImageFont.truetype("Trebucbd.ttf", size*300/72)
+            font = ImageFont.truetype(fontname, size*300/72)
             textwidth, textheight = font.getsize(text)
         return size
 
@@ -71,22 +71,22 @@ class BadgeImage(object):
         else:
             firstname, rest = (name, "")
         if rest != "":
-            personFont = ImageFont.truetype("Trebucbd.ttf", self.getFitSize(45, firstname)*300/72)
+            personFont = ImageFont.truetype(fontname, self.getFitSize(45, firstname)*300/72)
             self.drawCenteredText(line1pos, firstname, (personFont, NAME_COLOR))
-            personFont = ImageFont.truetype("Trebucbd.ttf", self.getFitSize(45, rest)*300/72)
+            personFont = ImageFont.truetype(fontname, self.getFitSize(45, rest)*300/72)
             self.drawCenteredText(line2pos, rest, (personFont, NAME_COLOR))
         else:
-            personFont = ImageFont.truetype("Trebucbd.ttf", self.getFitSize(45, name)*300/72)
+            personFont = ImageFont.truetype(fontname, self.getFitSize(45, name)*300/72)
             self.drawCenteredText(linepos, name, (personFont, NAME_COLOR))
 
     def drawCompany(self, name):
         pos = (self.img.size[0]/2, 500)
-        font = ImageFont.truetype("Trebucbd.ttf", self.getFitSize(26, name)*300/72)
+        font = ImageFont.truetype(fontname, self.getFitSize(26, name)*300/72)
         self.drawCenteredText(pos, name, (font, COMPANY_COLOR))
 
     def drawId(self, id):
         pos = (50, 50)
-        font = ImageFont.truetype("Trebucbd.ttf", 8*300/72)
+        font = ImageFont.truetype(fontname, 8*300/72)
         self.drawCenteredText(pos, id, (font, ID_COLOR))
 
 
@@ -132,9 +132,15 @@ class DataFileReader(object):
 
 import sys
 
+#The first argument is assumed to be font. from the second onwards starts the filenames
+
 if len(sys.argv) > 1:
-    filenames = sys.argv[1:]
+    fontname = sys.argv[1]
+    if len(sys.argv) > 2:
+      filenames = sys.argv[2:]
+    else : filenames = ["sample"]
 else:
+    fontname = "Trebucbd.ttf"
     filenames = ["sample"]
 
 count = 0
