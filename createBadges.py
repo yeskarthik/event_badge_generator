@@ -103,8 +103,8 @@ class BadgeImage(object):
 
 
 class DataFileReader(object):
-    def __init__(self, filename):
-        fp = open(filename)
+    def __init__(self, fp):
+        #fp = open(filename)
         self.content = fp.read()
         fp.close()
 
@@ -136,8 +136,9 @@ import sys
 
 class BadgeMaker(object):
 
-    def __init__(self, fontname = "Trebucbd.ttf", template = "badge_template_black.png", namecol = "white", compcol = "red", idcol = "white", foldcol = "black", filenames = ["sample"], nfs = 45, cfs = 26):
-        self.filenames = filenames
+    def __init__(self, fp, fontname = "Trebucbd.ttf", template = "badge_template_black.png", namecol = "white", compcol = "red", idcol = "white", foldcol = "black", filenames = ["sample"], nfs = 45, cfs = 26):
+        #self.filenames = filenames
+        self.fp = fp
         self.fontname = fontname
         self.template = template
         self.namecol = namecol
@@ -172,17 +173,18 @@ class BadgeMaker(object):
 
     def generateBadges(self):
         self.count = 0
-        for filename in self.filenames:
-            self.reader = DataFileReader(filename + ".csv")
-            if not os.path.exists(filename):
-                os.makedirs(filename)
-            for id, name, company in self.reader.getData():
-                print id, name, company
-                self.badge = BadgeImage(self.template, self.fontname)
-                self.badge.drawPerson(name, self.namecol, self.namefontsize)
-                self.badge.drawCompany(company, self.compcol, self.compfontsize)
-                self.badge.drawId(id, self.idcol)
-                self.badge.save(os.path.join(filename, "badge_" + str(id) + ".png"), self.foldcol)
-                self.count += 1
+        #for filename in self.filenames:
+        self.reader = DataFileReader(self.fp)
+        filename = "generatedones"
+        if not os.path.exists(filename):
+            os.makedirs(filename)
+        for id, name, company in self.reader.getData():
+            print id, name, company
+            self.badge = BadgeImage(self.template, self.fontname)
+            self.badge.drawPerson(name, self.namecol, self.namefontsize)
+            self.badge.drawCompany(company, self.compcol, self.compfontsize)
+            self.badge.drawId(id, self.idcol)
+            self.badge.save(os.path.join(filename, "badge_" + str(id) + ".png"), self.foldcol)
+            self.count += 1
         print "\n%d badges created" % (self.count)
         
